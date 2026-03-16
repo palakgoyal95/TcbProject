@@ -1,0 +1,22 @@
+{
+  "files.associations": {
+    "package.json": "json",
+    "*.json": "json"
+  },
+  "files.exclude": {
+    "**/.next": true
+  },
+  "search.exclude": {
+    "**/.next": true
+  },
+  "files.watcherExclude": {
+    "**/.next/**": true
+  },
+  "tailwindCSS.includeLanguages": {},
+  "tailwindCSS.files.exclude": [
+    "**/.next/**",
+    "**/node_modules/**",
+    "**/package.json",
+    "**/package-lock.json"
+  ]
+}
