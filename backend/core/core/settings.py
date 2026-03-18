@@ -18,6 +18,10 @@ from dotenv import load_dotenv
 from datetime import timedelta
 load_dotenv()
 
+
+def parse_csv_env(name):
+    return [item.strip() for item in os.getenv(name, "").split(",") if item.strip()]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -31,7 +35,17 @@ SECRET_KEY = 'django-insecure-)w#fo26y*tf)cyvdkx8y**-7md+h86er5_3b@k(lpgvpvvv@*s
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = list(
+    dict.fromkeys(
+        [
+            "127.0.0.1",
+            "localhost",
+            ".ngrok-free.app",
+            ".ngrok.io",
+        ]
+        + parse_csv_env("DJANGO_ALLOWED_HOSTS")
+    )
+)
 
 
 # Application definition
