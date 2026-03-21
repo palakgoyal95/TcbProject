@@ -41,3 +41,30 @@ def metrics(request):
             "metrics": metrics_payload,
         }
     )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def health(request):
+    metrics_payload = get_metrics_snapshot(top_paths=1)
+    return Response(
+        {
+            "status": "ok",
+            "uptime_seconds": metrics_payload.get("uptime_seconds", 0),
+            "database_open_connections": metrics_payload.get("database", {}).get(
+                "open_connections", 0
+            ),
+        }
+    )
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def root(request):
+    return Response(
+        {
+            "status": "ok",
+            "service": "tcb-backend",
+            "health": "/api/health/",
+        }
+    )

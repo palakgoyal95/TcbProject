@@ -9,13 +9,24 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-import dj_database_url
+import json
+import logging
 import os
+
 import cloudinary
+import dj_database_url
 
 from pathlib import Path
 from dotenv import load_dotenv
 from datetime import timedelta
+
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+except ImportError:  # pragma: no cover - optional in local installs
+    sentry_sdk = None
+    DjangoIntegration = None
+
 load_dotenv()
 
 
@@ -105,6 +116,9 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
 "default": dj_database_url.parse(os.getenv("DATABASE_URL"))
 }
+
+# Prevent invalid named cursor errors with transaction-pooled PostgreSQL connections.
+DATABASES["default"]["DISABLE_SERVER_SIDE_CURSORS"] = True
 #cloudinary configuration
 cloudinary.config(
 cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
@@ -159,3 +173,51 @@ STATIC_URL = 'static/'
 
 # Internal observability token used by /metrics endpoints.
 METRICS_TOKEN = os.getenv("METRICS_TOKEN", "")
+FRONTEND_SITE_URL = os.getenv("FRONTEND_SITE_URL", "http://localhost:3000")
+
+SENTRY_DSN = os.getenv("SENTRY_DSN", "").strip()
+SENTRY_ENVIRONMENT = os.getenv("SENTRY_ENVIRONMENT", "development").strip()
+SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0") or 0.0)
+
+if SENTRY_DSN and sentry_sdk and DjangoIntegration:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        environment=SENTRY_ENVIRONMENT,
+        traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+        send_default_pii=False,
+    )
+
+
+class JsonConsoleFormatter(logging.Formatter):
+    def format(self, record):
+        payload = {
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "timestamp": self.formatTime(record, self.datefmt),
+        }
+        if record.exc_info:
+            payload["exception"] = self.formatException(record.exc_info)
+        return json.dumps(payload)
+
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "structured": {
+            "()": "core.settings.JsonConsoleFormatter",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "structured",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": os.getenv("DJANGO_LOG_LEVEL", "INFO"),
+    },
+}

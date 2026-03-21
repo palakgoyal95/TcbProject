@@ -1,4 +1,8 @@
 {
+  "python.defaultInterpreterPath": "p:/django/TcbProject/.venv/Scripts/python.exe",
+  "python.analysis.extraPaths": [
+    "backend/core"
+  ],
   "files.associations": {
     "package.json": "json",
     "*.json": "json"
@@ -18,5 +22,15 @@
     "**/node_modules/**",
     "**/package.json",
     "**/package-lock.json"
-  ]
+  ],
+  "python.testing.unittestArgs": [
+    "-v",
+    "-s",
+    "./backend",
+    "-p",
+    "*_test.py"
+  ],
+  "python.testing.pytestEnabled": false,
+  "python.testing.unittestEnabled": true,
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }

@@ -1,16 +1,28 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import User
 from django.test import override_settings
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Category, Comment, ContactMessage, NewsletterSubscriber, Post, PostView
+from .models import (
+    AnalyticsEvent,
+    Category,
+    Comment,
+    ContactMessage,
+    EditorialAutosave,
+    NewsletterSubscriber,
+    Post,
+    PostView,
+)
 
 
 class SubscriptionApiTests(APITestCase):
     def test_can_subscribe_with_email(self):
         response = self.client.post("/api/subscriptions/", {"email": "reader@example.com"}, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(NewsletterSubscriber.objects.count(), 1)
         self.assertEqual(NewsletterSubscriber.objects.first().email, "reader@example.com")
 
@@ -35,7 +47,7 @@ class ContactApiTests(APITestCase):
 
         response = self.client.post("/api/contact/", payload, format="json")
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
         self.assertEqual(ContactMessage.objects.count(), 1)
         self.assertEqual(ContactMessage.objects.first().subject, "Partnership inquiry")
 
@@ -465,3 +477,184 @@ class PostListPerformanceApiTests(APITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertNotIn("content", response.data[0])
         self.assertIn("reading_time_minutes", response.data[0])
+
+
+class EditorialWorkflowApiTests(APITestCase):
+    def setUp(self):
+        self.writer = User.objects.create_user(username="writer7", password="strong-pass-123")
+        self.editor = User.objects.create_user(
+            username="editor1",
+            password="strong-pass-123",
+            is_staff=True,
+        )
+        self.category = Category.objects.create(name="Operations", slug="operations")
+
+    def test_staff_can_schedule_post_and_public_endpoints_hide_it(self):
+        self.client.force_authenticate(self.editor)
+        scheduled_for = timezone.now() + timedelta(days=2)
+
+        response = self.client.post(
+            "/api/posts/",
+            {
+                "title": "Quarterly planning calendar",
+                "slug": "quarterly-planning-calendar",
+                "excerpt": "A future-dated editorial planning post.",
+                "content": "<h2>Planning cadence</h2><p>Future launch details.</p>",
+                "category": self.category.id,
+                "image": "tcb-post-covers/quarterly-planning-calendar",
+                "status": "PUBLISHED",
+                "scheduled_for": scheduled_for.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["effective_status"], "SCHEDULED")
+
+        self.client.force_authenticate(user=None)
+        list_response = self.client.get("/api/posts/")
+        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
+        self.assertNotIn("quarterly-planning-calendar", [item["slug"] for item in list_response.data])
+
+        detail_response = self.client.get("/api/posts/quarterly-planning-calendar/")
+        self.assertEqual(detail_response.status_code, status.HTTP_404_NOT_FOUND)
+
+        self.client.force_authenticate(self.editor)
+        editor_detail = self.client.get("/api/posts/quarterly-planning-calendar/")
+        self.assertEqual(editor_detail.status_code, status.HTTP_200_OK)
+
+    def test_non_editor_cannot_schedule_future_publication(self):
+        self.client.force_authenticate(self.writer)
+        scheduled_for = timezone.now() + timedelta(days=1)
+
+        response = self.client.post(
+            "/api/posts/",
+            {
+                "title": "Writer scheduled launch",
+                "slug": "writer-scheduled-launch",
+                "excerpt": "Scheduling should be restricted.",
+                "content": "<h2>Schedule</h2><p>Restricted workflow.</p>",
+                "category": self.category.id,
+                "image": "tcb-post-covers/writer-scheduled-launch",
+                "status": "PUBLISHED",
+                "scheduled_for": scheduled_for.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_post_from_content_blocks_generates_html_and_previews(self):
+        self.client.force_authenticate(self.writer)
+
+        response = self.client.post(
+            "/api/posts/",
+            {
+                "title": "Block based planning guide",
+                "slug": "block-based-planning-guide",
+                "excerpt": "Create a post entirely from structured content blocks.",
+                "content_blocks": [
+                    {"type": "heading", "level": 2, "text": "Planning frame"},
+                    {
+                        "type": "list",
+                        "style": "unordered",
+                        "items": ["Collect inputs", "Draft sequence", "Review timing"],
+                    },
+                    {
+                        "type": "highlight",
+                        "text": "Use one calendar owner to reduce cross-team drift.",
+                    },
+                ],
+                "category": self.category.id,
+                "image": "tcb-post-covers/block-based-planning-guide",
+                "status": "DRAFT",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        self.assertIn("<h2>", response.data["content"])
+        self.assertEqual(response.data["slug_preview"], "http://localhost:3000/blog/block-based-planning-guide/")
+        self.assertEqual(response.data["seo_preview"]["title"], "Block based planning guide")
+
+
+class EditorialAutosaveApiTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="writer8", password="strong-pass-123")
+        self.client.force_authenticate(self.user)
+
+    def test_editorial_autosave_round_trip(self):
+        payload = {
+            "draft_key": "writer-studio",
+            "payload": {
+                "title": "Recovered draft",
+                "editorHtml": "<h2>Recovery path</h2><p>Autosave keeps this work alive.</p>",
+                "faqBlocks": [
+                    {
+                        "question": "Does autosave persist remotely?",
+                        "answer": "Yes, this draft is stored on the backend.",
+                    }
+                ],
+            },
+        }
+
+        save_response = self.client.put("/api/editorial/autosave/", payload, format="json")
+
+        self.assertEqual(save_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(EditorialAutosave.objects.count(), 1)
+        self.assertGreater(EditorialAutosave.objects.first().word_count, 0)
+
+        fetch_response = self.client.get("/api/editorial/autosave/?draft_key=writer-studio")
+        self.assertEqual(fetch_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(fetch_response.data["payload"]["title"], "Recovered draft")
+
+
+class AnalyticsEventApiTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="writer9", password="strong-pass-123")
+        self.category = Category.objects.create(name="Insights", slug="insights")
+        self.post = Post.objects.create(
+            title="Analytics baseline post",
+            slug="analytics-baseline-post",
+            excerpt="A post used to verify event tracking.",
+            content="<h2>Measurement</h2><p>Baseline analytics content.</p>",
+            category=self.category,
+            author=self.user,
+            image="https://example.com/analytics.jpg",
+            status="PUBLISHED",
+        )
+
+    def test_search_and_engagement_endpoints_persist_events(self):
+        search_response = self.client.post(
+            "/api/search/analytics/",
+            {
+                "event_type": "search_impression",
+                "query": "analytics",
+                "result_count": 1,
+                "clicked_slug": self.post.slug,
+                "source": "search-page",
+            },
+            format="json",
+        )
+
+        self.assertEqual(search_response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(
+            AnalyticsEvent.objects.filter(event_type=AnalyticsEvent.EventType.SEARCH).count(),
+            1,
+        )
+
+        engagement_response = self.client.post(
+            "/api/analytics/engagement/",
+            {
+                "slug": self.post.slug,
+                "depth_percent": 75,
+                "source": "article-page",
+            },
+            format="json",
+        )
+
+        self.assertEqual(engagement_response.status_code, status.HTTP_202_ACCEPTED)
+        self.assertEqual(
+            AnalyticsEvent.objects.filter(event_type=AnalyticsEvent.EventType.SCROLL_DEPTH).count(),
+            1,
+        )

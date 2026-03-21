@@ -66,6 +66,10 @@ CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 GOOGLE_CLIENT_ID=your_google_oauth_web_client_id
+METRICS_TOKEN=optional_metrics_token
+SENTRY_DSN=optional_sentry_dsn
+SENTRY_ENVIRONMENT=development
+SENTRY_TRACES_SAMPLE_RATE=0.0
 ```
 
 Important: do not commit real credentials to git.
@@ -118,6 +122,9 @@ Create `frontend/my-app/.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://127.0.0.1:8000/api
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_oauth_web_client_id
+NEXT_PUBLIC_GA_MEASUREMENT_ID=optional_ga4_measurement_id
+NEXT_PUBLIC_CLOUDFLARE_BEACON_TOKEN=optional_cloudflare_token
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=optional_google_site_verification
 ```
 
 If not set, app already defaults to `http://127.0.0.1:8000/api`.
@@ -182,6 +189,24 @@ npm run lint
 - `GET /api/categories/` - list categories
 
 Base URL locally: `http://127.0.0.1:8000`
+
+## 8. Observability Endpoints
+
+- `GET /api/health/` - uptime and basic DB connection signal
+- `GET /api/metrics/` - request/latency/error and connection metrics
+
+## 9. Project Documentation
+
+- `docs/System-Architecture.md`
+- `docs/API-Documentation.md`
+- `docs/Database-Schema-Diagram.md`
+- `docs/SEO-Checklist.md`
+- `docs/Launch-Checklist.md`
+- `docs/Security-Hardening-Checklist.md`
+- `docs/Disaster-Recovery-SOP.md`
+- `docs/CMS-User-Guide.md`
+- `docs/Deployment-Guide.md`
+- `docs/Scaling-Roadmap.md`
 
 ## 7. Troubleshooting
 

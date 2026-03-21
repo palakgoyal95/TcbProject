@@ -25,6 +25,24 @@ def _build_unique_username(base_username):
     return candidate
 
 
+def _build_editorial_capabilities(user):
+    can_manage_all_posts = bool(user.is_staff or user.is_superuser)
+    can_schedule_posts = bool(can_manage_all_posts or user.has_perm("blog.publish_post"))
+
+    if user.is_superuser:
+        role = "admin"
+    elif can_manage_all_posts or can_schedule_posts:
+        role = "editor"
+    else:
+        role = "writer"
+
+    return role, {
+        "can_publish_posts": True,
+        "can_schedule_posts": can_schedule_posts,
+        "can_manage_all_posts": can_manage_all_posts,
+    }
+
+
 @api_view(['POST'])
 def register(request):
 
@@ -96,6 +114,7 @@ def me(request):
 
     user = request.user
     profile, _ = WriterProfile.objects.get_or_create(user=user)
+    role, capabilities = _build_editorial_capabilities(user)
 
     if request.method == "PATCH":
         username = request.data.get("username")
@@ -133,4 +152,7 @@ def me(request):
         "username": user.username,
         "email": user.email,
         "about": profile.about,
+        "role": role,
+        "is_staff": bool(user.is_staff),
+        "capabilities": capabilities,
     })
