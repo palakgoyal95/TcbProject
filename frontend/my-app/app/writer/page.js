@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -164,34 +164,6 @@ function extractApiErrorMessage(payload, fallbackStatusText = "") {
     .filter(Boolean);
 
   return messages.join(" | ") || fallbackText;
-}
-
-function buildYouTubeEmbedUrl(value) {
-  const raw = String(value || "").trim();
-  if (!raw) {
-    return "";
-  }
-
-  try {
-    const parsed = new URL(raw);
-    let videoId = "";
-
-    if (parsed.hostname.includes("youtu.be")) {
-      videoId = parsed.pathname.replace(/^\/+/, "").split("/")[0];
-    } else if (parsed.pathname.startsWith("/embed/")) {
-      videoId = parsed.pathname.split("/embed/")[1]?.split("/")[0] || "";
-    } else {
-      videoId = parsed.searchParams.get("v") || "";
-    }
-
-    if (!/^[\w-]{6,20}$/.test(videoId)) {
-      return "";
-    }
-
-    return `https://www.youtube.com/embed/${videoId}`;
-  } catch {
-    return "";
-  }
 }
 
 function toLocalDateTimeInputValue(value) {
@@ -664,43 +636,6 @@ export default function WriterPage() {
     }
   }, [editorHtml]);
 
-  useEffect(() => {
-    if (!autosaveReadyRef.current) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      persistLocalDraft({}, { silent: true });
-      void saveBackendAutosave();
-    }, 1800);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [
-    title,
-    slug,
-    excerpt,
-    selectedCategory,
-    status,
-    scheduledFor,
-    seoTitle,
-    seoDescription,
-    canonicalUrl,
-    seoNoindex,
-    isSponsored,
-    disclosureText,
-    premiumEnabled,
-    adSlotTopEnabled,
-    adSlotInlineEnabled,
-    adSlotSidebarEnabled,
-    faqBlocks,
-    editorHtml,
-    coverImageUrl,
-    coverImagePublicId,
-    linkSuggestionState.postId,
-  ]);
-
   const saveSelection = () => {
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) {
@@ -767,52 +702,6 @@ export default function WriterPage() {
     }
   };
 
-  const applyHeadingLevel = (level) => {
-    runCommand("formatBlock", `h${level}`);
-  };
-
-  const insertQuoteBlock = () => {
-    runCommand(
-      "insertHTML",
-      "<blockquote><p>Pull quote or cited insight goes here.</p><cite>Source</cite></blockquote><p></p>"
-    );
-  };
-
-  const insertHighlightBlock = () => {
-    runCommand(
-      "insertHTML",
-      '<aside class="tcb-highlight"><p>Highlighted editorial note or key takeaway.</p></aside><p></p>'
-    );
-  };
-
-  const insertTableBlock = () => {
-    runCommand(
-      "insertHTML",
-      "<table><tbody><tr><th>Column A</th><th>Column B</th></tr><tr><td>Value 1</td><td>Value 2</td></tr></tbody></table><p></p>"
-    );
-  };
-
-  const insertYouTubeBlock = () => {
-    const url = window.prompt("Paste a YouTube URL");
-    const embedUrl = buildYouTubeEmbedUrl(url);
-    if (!embedUrl) {
-      return;
-    }
-
-    runCommand(
-      "insertHTML",
-      `<figure class="tcb-youtube"><iframe src="${embedUrl}" title="YouTube video" loading="lazy" allowfullscreen></iframe></figure><p></p>`
-    );
-  };
-
-  const insertCodeBlock = () => {
-    const language = window.prompt("Code language (optional)", "javascript") || "";
-    runCommand(
-      "insertHTML",
-      `<pre><code class="language-${escapeHtml(language)}">// Code block ready for Phase 2 enhancements</code></pre><p></p>`
-    );
-  };
-
   const handleTitleChange = (event) => {
     const nextTitle = event.target.value;
     setTitle(nextTitle);
@@ -822,7 +711,7 @@ export default function WriterPage() {
     }
   };
 
-  const persistLocalDraft = (overrides = {}, options = {}) => {
+  const persistLocalDraft = useCallback((overrides = {}, options = {}) => {
     const updatedAt = new Date().toISOString();
     localStorage.setItem(
       "writer_draft_v2",
@@ -860,9 +749,32 @@ export default function WriterPage() {
         errorMessage: "",
       }));
     }
-  };
+  }, [
+    title,
+    slug,
+    isSlugCustom,
+    excerpt,
+    selectedCategory,
+    status,
+    scheduledFor,
+    seoTitle,
+    seoDescription,
+    canonicalUrl,
+    seoNoindex,
+    isSponsored,
+    disclosureText,
+    premiumEnabled,
+    adSlotTopEnabled,
+    adSlotInlineEnabled,
+    adSlotSidebarEnabled,
+    faqBlocks,
+    editorHtml,
+    coverImageUrl,
+    coverImagePublicId,
+    linkSuggestionState.postId,
+  ]);
 
-  const saveBackendAutosave = async () => {
+  const saveBackendAutosave = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) {
       return;
@@ -929,7 +841,44 @@ export default function WriterPage() {
         isSaving: false,
       }));
     }
-  };
+  }, [
+    title,
+    slug,
+    excerpt,
+    selectedCategory,
+    status,
+    scheduledFor,
+    seoTitle,
+    seoDescription,
+    canonicalUrl,
+    seoNoindex,
+    isSponsored,
+    disclosureText,
+    premiumEnabled,
+    adSlotTopEnabled,
+    adSlotInlineEnabled,
+    adSlotSidebarEnabled,
+    faqBlocks,
+    editorHtml,
+    coverImageUrl,
+    coverImagePublicId,
+    linkSuggestionState.postId,
+  ]);
+
+  useEffect(() => {
+    if (!autosaveReadyRef.current) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      persistLocalDraft({}, { silent: true });
+      void saveBackendAutosave();
+    }, 1800);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [persistLocalDraft, saveBackendAutosave]);
 
   const uploadToCloudinary = async (file, folderName) => {
     if (!cloudinaryReady) {
