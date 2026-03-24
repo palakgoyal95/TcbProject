@@ -636,6 +636,7 @@ export default function WriterPublishedPage() {
                               src={post.image_url}
                               alt={post?.title || "Published post cover"}
                               fill
+                              sizes="(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 33vw"
                               className="object-cover transition duration-500 group-hover:scale-[1.03]"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/45 via-transparent to-transparent" />

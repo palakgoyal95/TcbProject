@@ -68,6 +68,9 @@ body {
   --writer-shell-start: #f6efe2;
   --writer-shell-mid: #f2f4ef;
   --writer-shell-end: #eaf1f4;
+  --shell-start: #f5f0e5;
+  --shell-mid: #f1f4ee;
+  --shell-end: #eaf1f3;
   --writer-panel: rgba(255, 255, 255, 0.82);
   --writer-panel-strong: rgba(255, 255, 255, 0.94);
   --writer-panel-soft: rgba(247, 250, 248, 0.78);
@@ -87,9 +90,9 @@ body {
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(circle at top left, rgba(31, 122, 103, 0.16), transparent 24rem),
-    radial-gradient(circle at right 14% top 18%, rgba(190, 116, 63, 0.14), transparent 20rem),
-    linear-gradient(180deg, var(--writer-shell-start) 0%, var(--writer-shell-mid) 42%, var(--writer-shell-end) 100%);
+    radial-gradient(circle at top left, rgba(31, 122, 103, 0.14), transparent 26rem),
+    radial-gradient(circle at right 12% top 18%, rgba(190, 116, 63, 0.14), transparent 21rem),
+    linear-gradient(180deg, var(--shell-start) 0%, var(--shell-mid) 44%, var(--shell-end) 100%);
 }
 
 .writer-shell > * {
@@ -292,7 +295,7 @@ body {
   background:
     radial-gradient(circle at top left, rgba(31, 122, 103, 0.14), transparent 26rem),
     radial-gradient(circle at right 12% top 18%, rgba(190, 116, 63, 0.14), transparent 21rem),
-    linear-gradient(180deg, #f6efe2 0%, #f1f4ee 44%, #eaf0f2 100%);
+    linear-gradient(180deg, var(--shell-start) 0%, var(--shell-mid) 44%, var(--shell-end) 100%);
 }
 
 .public-shell > * {

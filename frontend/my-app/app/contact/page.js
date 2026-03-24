@@ -48,8 +48,8 @@ export default function ContactPage() {
     <main className="public-shell min-h-screen px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <section className="relative mx-auto max-w-7xl space-y-6">
         <article className="public-panel relative overflow-hidden rounded-[2.5rem] p-6 sm:p-8 lg:min-h-[34rem] lg:p-10">
-          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.3),transparent_55%)]" />
-          <div className="absolute -bottom-8 left-0 h-40 w-40 rounded-full bg-blue-200/35 blur-3xl" />
+          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_58%)]" />
+          <div className="absolute -bottom-8 left-0 h-40 w-40 rounded-full bg-emerald-200/35 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
             <div>
               <p className="public-pill">
@@ -79,14 +79,14 @@ export default function ContactPage() {
             </div>
 
             <article className="public-panel-dark relative overflow-hidden rounded-[1.9rem] p-6 text-white">
-              <div className="absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.3),transparent_55%)]" />
-              <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200/85">
+              <div className="absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.24),transparent_58%)]" />
+              <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/85">
                 Response Standards
               </p>
               <div className="relative mt-5 space-y-4">
                 {responseStandards.map((item) => (
                   <div key={item.title} className="rounded-[1.25rem] border border-white/12 bg-white/8 p-4 backdrop-blur">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-cyan-100">
+                    <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-emerald-100">
                       {item.title}
                     </h2>
                     <p className="mt-2 text-sm leading-6 text-slate-300">{item.detail}</p>

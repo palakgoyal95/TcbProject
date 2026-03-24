@@ -13,9 +13,9 @@ const categoryThemes = [
     button: "group-hover:border-cyan-300 group-hover:bg-cyan-50 group-hover:text-cyan-900",
   },
   {
-    card: "border-blue-200/85 bg-[linear-gradient(180deg,rgba(239,246,255,0.98),rgba(255,255,255,0.94))]",
-    badge: "bg-blue-100 text-blue-800",
-    button: "group-hover:border-blue-300 group-hover:bg-blue-50 group-hover:text-blue-900",
+    card: "border-teal-200/85 bg-[linear-gradient(180deg,rgba(240,253,250,0.98),rgba(255,255,255,0.94))]",
+    badge: "bg-teal-100 text-teal-800",
+    button: "group-hover:border-teal-300 group-hover:bg-teal-50 group-hover:text-teal-900",
   },
   {
     card: "border-emerald-200/85 bg-[linear-gradient(180deg,rgba(236,253,245,0.98),rgba(255,255,255,0.94))]",
@@ -42,7 +42,7 @@ export default async function CategoriesPage() {
     <main className="public-shell min-h-screen px-4 py-4 sm:px-6 sm:py-8 lg:px-8">
       <section className="relative mx-auto max-w-7xl space-y-6">
         <article className="public-panel relative overflow-hidden rounded-[2.5rem] p-6 sm:p-8 lg:min-h-[34rem] lg:p-10">
-          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.3),transparent_55%)]" />
+          <div className="absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.24),transparent_58%)]" />
           <div className="absolute bottom-0 left-0 h-44 w-44 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
             <div>
@@ -73,8 +73,8 @@ export default async function CategoriesPage() {
             </div>
 
             <article className="public-panel-dark relative overflow-hidden rounded-[1.9rem] p-6 text-white">
-              <div className="absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(96,165,250,0.3),transparent_55%)]" />
-              <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-cyan-200/85">
+              <div className="absolute inset-x-0 top-0 h-36 bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.24),transparent_58%)]" />
+              <p className="relative text-xs font-semibold uppercase tracking-[0.18em] text-emerald-100/85">
                 Library Snapshot
               </p>
               <div className="relative mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -119,16 +119,16 @@ export default async function CategoriesPage() {
               return (
                 <article
                   key={`${id}-${name}`}
-                  className={`public-panel-soft group flex h-full flex-col rounded-[1.75rem] p-5 transition duration-200 hover:-translate-y-1 sm:p-6 ${theme.card}`}
+                  className={`public-panel-soft group flex h-full flex-col rounded-[1.75rem] border p-5 transition duration-200 hover:-translate-y-1 hover:border-[rgba(20,44,38,0.22)] hover:shadow-[0_24px_46px_-34px_rgba(18,33,29,0.34)] sm:p-6 ${theme.card}`}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
                         Topic {String(index + 1).padStart(2, "0")}
                       </p>
-                      <h2 className="mt-3 text-xl font-semibold text-slate-950">{name}</h2>
+                      <h2 className="mt-3 text-xl font-semibold text-slate-950 transition-colors duration-200 group-hover:text-[#175f52]">{name}</h2>
                     </div>
-                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`}>
+                    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold transition-transform duration-200 group-hover:scale-[1.03] ${theme.badge}`}>
                       {id ? `#${id}` : "General"}
                     </span>
                   </div>
